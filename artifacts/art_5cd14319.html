@@ -1,0 +1,828 @@
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tariff Resilience — A Sensing-and-Decisioning Capability for Nike</title>
+<style>
+  :root{
+    --ink:#0a0a0a;
+    --ink-2:#3a3a3a;
+    --muted:#6b6b6b;
+    --line:#e4e4e4;
+    --bg:#ffffff;
+    --bg-soft:#f6f6f4;
+    --accent:#0f62fe;      /* IBM blue */
+    --accent-soft:#e8effd;
+    --nike:#111111;
+    --gold:#b58a2e;
+    --green:#0a7d4d;
+    --green-soft:#e6f4ec;
+    --radius:14px;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+
+  /* ---------- Top nav ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);
+    backdrop-filter:saturate(160%) blur(10px);border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:-.01em;font-size:15px;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);}
+  .navlinks{display:flex;gap:22px;font-size:13.5px;font-weight:500;}
+  .navlinks a{color:var(--muted);text-decoration:none;transition:color .15s;}
+  .navlinks a:hover{color:var(--ink);}
+  @media(max-width:820px){.navlinks{display:none;}}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:76px 0 54px;border-bottom:1px solid var(--line);
+    background:radial-gradient(1200px 400px at 80% -10%, var(--accent-soft), transparent 60%);}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    background:var(--accent-soft);padding:6px 12px;border-radius:999px;margin-bottom:22px;}
+  h1{font-size:52px;line-height:1.04;letter-spacing:-.03em;font-weight:800;max-width:16ch;margin-bottom:20px;}
+  .lede{font-size:19px;color:var(--ink-2);max-width:62ch;font-weight:400;}
+  .reframe{
+    margin-top:34px;border-left:4px solid var(--accent);background:var(--bg-soft);
+    padding:22px 26px;border-radius:0 var(--radius) var(--radius) 0;max-width:70ch;
+  }
+  .reframe .label{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .reframe p{font-size:18.5px;line-height:1.5;font-weight:500;color:var(--ink);}
+  .reframe em{font-style:normal;background:linear-gradient(transparent 60%, #d6e4ff 60%);}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:62px 0;border-bottom:1px solid var(--line);}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:12px;}
+  .sec-num{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.04em;}
+  h2{font-size:31px;letter-spacing:-.02em;font-weight:800;line-height:1.1;}
+  .sec-sub{font-size:16.5px;color:var(--muted);max-width:66ch;margin-bottom:34px;}
+
+  /* ---------- Signals ---------- */
+  .signal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:760px){.signal-grid{grid-template-columns:1fr;}}
+  .signal{border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;
+    background:var(--bg);transition:transform .15s, box-shadow .15s;}
+  .signal:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.06);}
+  .signal .tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;display:inline-block;}
+  .signal h3{font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:7px;}
+  .signal p{font-size:14.5px;color:var(--ink-2);}
+  .signal .quote{font-style:italic;color:var(--ink);border-left:3px solid var(--line);padding-left:12px;margin-top:10px;font-size:14px;}
+
+  /* ---------- Capabilities ---------- */
+  .cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:900px){.cap-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:620px){.cap-grid{grid-template-columns:1fr;}}
+  .cap{border:1px solid var(--line);border-radius:var(--radius);padding:24px 22px;background:var(--bg);position:relative;overflow:hidden;}
+  .cap::before{content:"";position:absolute;top:0;left:0;height:3px;width:100%;background:var(--accent);opacity:.85;}
+  .cap .ico{width:40px;height:40px;border-radius:10px;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;margin-bottom:15px;font-size:20px;}
+  .cap h3{font-size:16.5px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em;}
+  .cap p{font-size:14px;color:var(--ink-2);}
+  /* concrete capabilities-needed chips */
+  .cap-need-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media(max-width:620px){.cap-need-grid{grid-template-columns:1fr;}}
+  .cap-need{position:relative;padding:13px 16px 13px 38px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg-soft);font-size:14px;font-weight:600;color:var(--ink);line-height:1.4;}
+  .cap-need::before{content:"";position:absolute;left:15px;top:50%;transform:translateY(-50%) rotate(45deg);
+    width:8px;height:8px;background:var(--accent);border-radius:2px;}
+  /* future-state operating model cards */
+  .fs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:760px){.fs-grid{grid-template-columns:1fr;}}
+  .fs-card{background:var(--nike);color:#fff;border-radius:14px;padding:22px 22px;display:flex;gap:14px;align-items:flex-start;}
+  .fs-card .fs-n{font-size:26px;font-weight:800;line-height:1;color:#7fb0ff;flex-shrink:0;}
+  .fs-card .fs-t{font-size:14.5px;line-height:1.5;color:#e6e6e6;}
+  .fs-card .fs-t b{color:#fff;font-weight:700;}
+
+  /* ---------- Delivery timeline ---------- */
+  .phase{display:grid;grid-template-columns:180px 1fr;gap:24px;padding:26px 0;border-top:1px solid var(--line);}
+  .phase:first-of-type{border-top:none;}
+  @media(max-width:700px){.phase{grid-template-columns:1fr;gap:8px;}}
+  .phase .meta .p-name{font-size:18px;font-weight:800;letter-spacing:-.01em;}
+  .phase .meta .p-time{font-size:13px;color:var(--accent);font-weight:600;margin-top:4px;}
+  .phase .meta .p-when{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .phase .body h4{font-size:15.5px;font-weight:700;margin-bottom:8px;}
+  .phase .body ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+  .phase .body li{position:relative;padding-left:20px;font-size:14.5px;color:var(--ink-2);}
+  .phase .body li::before{content:"";position:absolute;left:0;top:9px;width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  .sprint-callout{background:var(--nike);color:#fff;border-radius:var(--radius);padding:26px 28px;margin-top:30px;
+    display:flex;gap:26px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .sprint-callout .txt{max-width:60ch;}
+  .sprint-callout h4{font-size:19px;font-weight:800;margin-bottom:6px;}
+  .sprint-callout p{font-size:14.5px;color:#cfcfcf;}
+  .sprint-callout .risk{white-space:nowrap;text-align:center;border:1px solid #444;border-radius:12px;padding:16px 22px;}
+  .sprint-callout .risk .big{font-size:30px;font-weight:800;line-height:1;color:#fff;}
+  .sprint-callout .risk .sm{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#a9a9a9;margin-top:6px;}
+
+  /* ---------- Benefits ---------- */
+  .ben-split{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media(max-width:800px){.ben-split{grid-template-columns:1fr;}}
+  .ben-col{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .ben-col .head{padding:18px 22px;font-weight:800;font-size:16px;letter-spacing:.02em;display:flex;align-items:center;gap:10px;}
+  .ben-col.fin .head{background:var(--accent-soft);color:var(--accent);}
+  .ben-col.nonfin .head{background:var(--green-soft);color:var(--green);}
+  .ben-col ul{list-style:none;padding:8px 22px 22px;}
+  .ben-col li{padding:14px 0;border-bottom:1px solid var(--line);}
+  .ben-col li:last-child{border-bottom:none;}
+  .ben-col li .b-t{font-size:15px;font-weight:700;margin-bottom:3px;}
+  .ben-col li .b-d{font-size:13.5px;color:var(--ink-2);}
+
+  /* ---------- Peer strip ---------- */
+  .peers{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px;}
+  @media(max-width:760px){.peers{grid-template-columns:repeat(2,1fr);}}
+  .peer{border:1px solid var(--line);border-radius:12px;padding:18px;background:var(--bg-soft);
+    cursor:pointer;transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    position:relative;text-align:left;font:inherit;width:100%;display:block;}
+  .peer:hover,.peer:focus-visible{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.09);
+    border-color:var(--accent);outline:none;}
+  .peer .name{font-weight:800;font-size:15px;margin-bottom:6px;}
+  .peer .move{font-size:13px;color:var(--ink-2);}
+  .peer .cta{margin-top:12px;font-size:12px;font-weight:700;color:var(--accent);
+    display:inline-flex;align-items:center;gap:5px;}
+  .peer .cta svg{width:13px;height:13px;}
+
+  /* ---------- Peer modal ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:100;
+    display:none;align-items:flex-start;justify-content:center;padding:5vh 20px 20px;
+    opacity:0;transition:opacity .2s ease;overflow-y:auto;}
+  .modal-overlay.open{display:flex;opacity:1;}
+  .modal{background:var(--bg);border-radius:18px;max-width:600px;width:100%;
+    box-shadow:0 30px 80px rgba(0,0,0,.3);transform:translateY(12px);
+    transition:transform .2s ease;overflow:hidden;}
+  .modal-overlay.open .modal{transform:translateY(0);}
+  .modal-head{padding:26px 30px 20px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+  .modal-head .m-name{font-size:22px;font-weight:800;letter-spacing:-.01em;}
+  .modal-head .m-tag{font-size:12px;font-weight:700;color:var(--accent);
+    background:var(--accent-soft);padding:4px 10px;border-radius:999px;margin-top:8px;display:inline-block;}
+  .modal-close{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;
+    width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);
+    flex-shrink:0;transition:background .15s;}
+  .modal-close:hover{background:#ececec;color:var(--ink);}
+  .modal-body{padding:24px 30px 6px;}
+  .modal-body .m-lead{font-size:14.5px;color:var(--ink-2);margin-bottom:18px;}
+  .modal-body h5{font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--muted);
+    text-transform:uppercase;margin:18px 0 10px;}
+  .modal-body ul.m-actions{list-style:none;margin-bottom:6px;}
+  .modal-body ul.m-actions li{position:relative;padding-left:20px;margin-bottom:10px;
+    font-size:14px;color:var(--ink-2);line-height:1.55;}
+  .modal-body ul.m-actions li::before{content:"";position:absolute;left:0;top:8px;
+    width:7px;height:7px;border-radius:2px;background:var(--accent);}
+  .modal-links{padding:6px 30px 28px;}
+  .modal-links a{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-top:8px;
+    border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);
+    font-size:13.5px;transition:background .15s,border-color .15s;}
+  .modal-links a:hover{background:var(--bg-soft);border-color:var(--accent);}
+  .modal-links a .src{color:var(--muted);font-size:12px;margin-left:auto;flex-shrink:0;}
+  .modal-links a svg{width:15px;height:15px;flex-shrink:0;color:var(--accent);}
+  body.modal-open{overflow:hidden;}
+
+  /* ---------- Closing ---------- */
+  .close{padding:56px 0 70px;border-bottom:none;}
+  .close-card{background:radial-gradient(900px 300px at 20% 0%, var(--accent-soft), transparent 60%),var(--bg-soft);
+    border:1px solid var(--line);border-radius:18px;padding:40px 40px;}
+  .close-card h2{margin-bottom:14px;}
+  .close-card p{font-size:16.5px;color:var(--ink-2);max-width:64ch;}
+  .anchor{display:inline-flex;gap:10px;align-items:center;margin-top:22px;font-size:14px;font-weight:600;color:var(--accent);}
+
+  footer{padding:26px 0;color:var(--muted);font-size:12.5px;}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  .pill-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+  .pill{font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--bg-soft);
+    border:1px solid var(--line);border-radius:999px;padding:7px 14px;}
+
+  /* ---------- Core business question ---------- */
+  .cbq{margin-top:36px;background:var(--nike);color:#fff;border-radius:18px;padding:32px 34px;position:relative;overflow:hidden;}
+  .cbq::after{content:"";position:absolute;top:0;right:0;width:38%;height:100%;background:radial-gradient(600px 200px at 100% 0%,rgba(15,98,254,.28),transparent 60%);pointer-events:none;}
+  .cbq .cbq-k{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7fb0ff;margin-bottom:14px;}
+  .cbq .cbq-lead{font-size:24px;line-height:1.32;font-weight:700;letter-spacing:-.01em;max-width:30ch;}
+  .cbq .cbq-lead b{color:#7fb0ff;}
+  .cbq-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px;}
+  @media(max-width:760px){.cbq-row{grid-template-columns:1fr;}}
+  .cbq-cell{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:16px 18px;}
+  .cbq-cell .cc-k{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7fb0ff;margin-bottom:8px;}
+  .cbq-cell .cc-t{font-size:14px;line-height:1.5;color:#e6e6e6;}
+  .cbq-cell .cc-t b{color:#fff;font-weight:700;}
+
+  /* ---------- Process flow (tariff -> margin -> levers) ---------- */
+  .flowband{margin-top:34px;}
+  .flowband .fb-k{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1.3fr auto 1fr;align-items:stretch;gap:0;}
+  @media(max-width:860px){.flow{grid-template-columns:1fr;gap:12px;}.farrow{display:none!important;}}
+  .fnode{border:1px solid var(--line);border-radius:14px;padding:18px 18px;background:var(--bg);display:flex;flex-direction:column;gap:6px;}
+  .fnode.threat{border-color:#f2c9c0;background:#fff7f5;}
+  .fnode.defend{border-color:#bfe6cf;background:var(--green-soft);}
+  .fnode .fico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.04);margin-bottom:2px;}
+  .fnode.threat .fico{color:#c0392b;background:#fdeae6;}
+  .fnode.defend .fico{color:var(--green);background:#d8f0e2;}
+  .fnode .fico svg{width:19px;height:19px;}
+  .fnode .flabel{font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);}
+  .fnode .fbig{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1;}
+  .fnode.threat .fbig{color:#c0392b;}
+  .fnode.defend .fbig{color:var(--green);}
+  .fnode .fbig .from{color:var(--muted);font-size:17px;font-weight:700;}
+  .fnode .fsub{font-size:12.5px;line-height:1.45;color:var(--ink-2);}
+  .fnode .fsub b{color:var(--ink);font-weight:700;}
+  .lnode{border:1px dashed var(--accent);border-radius:14px;padding:16px 16px;background:var(--accent-soft);display:flex;flex-direction:column;gap:9px;}
+  .lnode .flabel{font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);}
+  .lchips{display:flex;flex-wrap:wrap;gap:6px;}
+  .lchips span{font-size:11px;font-weight:600;color:var(--accent);background:#fff;border:1px solid #cfe0ff;border-radius:999px;padding:4px 9px;}
+  .farrow{display:flex;align-items:center;justify-content:center;padding:0 8px;color:var(--muted);}
+  .farrow svg{width:22px;height:22px;}
+
+  /* ---------- Why it's hard today (concept context) ---------- */
+  .whyhard{margin-top:30px;padding-top:26px;border-top:1px solid var(--line);}
+  .whyhard .wh-k{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  .wh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media(max-width:760px){.wh-grid{grid-template-columns:1fr;gap:16px;}}
+  .wh-item{position:relative;padding-left:16px;}
+  .wh-item::before{content:"";position:absolute;left:0;top:4px;width:3px;height:calc(100% - 6px);background:var(--accent);opacity:.55;border-radius:2px;}
+  .wh-item .wh-t{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px;color:var(--ink);}
+  .wh-item .wh-d{font-size:13.5px;line-height:1.55;color:var(--ink-2);}
+  .wh-item .wh-d em{font-style:normal;font-weight:600;color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span>Tariff Resilience · IBM Consulting for Nike</div>
+    <nav class="navlinks">
+      <a href="#concept">The Concept</a>
+      <a href="#signals">Signals</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#delivery">Delivery</a>
+      <a href="#benefits">Benefits</a>
+    </nav>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero" id="concept">
+  <div class="wrap">
+    <span class="eyebrow">A sensing-and-decisioning capability</span>
+    <h1>Tariff Resilience for Nike</h1>
+    <p class="lede">
+      A capability that lets Nike price, allocate, and source with precision under a durable
+      tariff regime — built to <strong>operate with discipline: forecast, make, and deliver</strong>
+      at the SKU-, country-, and consumer-level resolution the next operating model will require.
+    </p>
+
+    <div class="reframe">
+      <div class="label">The reframe in one sentence</div>
+      <p>Nike's tariff exposure isn't a sourcing-hedging problem to be solved once — it's a
+      <em>signal</em> that demand-and-supply sensing now needs to move at the same resolution
+      as the economics. Rebuild sensing first, sourcing second.</p>
+    </div>
+
+    <div class="pill-row">
+      <span class="pill">FY27 planning frame: 10% → 15% incremental tariffs</span>
+      <span class="pill">Forecast · Make · Deliver</span>
+      <span class="pill">Premium, not promotional</span>
+      <span class="pill">Ready for the Sport Offense era (FY28)</span>
+    </div>
+
+    <!-- CORE BUSINESS QUESTION (merged from executive one-pager) -->
+    <div class="cbq">
+      <div class="cbq-k">The core business question this answers</div>
+      <div class="cbq-lead">As FY27 incremental tariffs rise from <b>10% to 15%</b>, what is the impact on <b>gross margin</b> — and what actions <b>hold the line on the GM target</b>?</div>
+      <div class="cbq-row">
+        <div class="cbq-cell"><div class="cc-k">Actions</div><div class="cc-t">What actions can <b>protect gross margin</b> through the tariff rise?</div></div>
+        <div class="cbq-cell"><div class="cc-k">Ownership</div><div class="cc-t"><b>Who owns</b> those actions across Nike's operating model?</div></div>
+        <div class="cbq-cell"><div class="cc-k">Tracking</div><div class="cc-t"><b>How is progress tracked</b> — from decision to realized margin, SKU by SKU?</div></div>
+      </div>
+    </div>
+
+    <!-- PROCESS FLOW: how a tariff shock moves through margin, and the levers that defend it -->
+    <div class="flowband">
+      <div class="fb-k">How a tariff shock moves through margin — and the levers that defend it</div>
+      <div class="flow">
+        <div class="fnode threat">
+          <div class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L22 20 H2 Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></div>
+          <div class="flabel">Tariff Rise</div>
+          <div class="fbig"><span class="from">10%</span> → 15%</div>
+          <div class="fsub">FY27 incremental tariffs rise by country of origin across a large share of sourced units.</div>
+        </div>
+        <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></div>
+        <div class="fnode threat">
+          <div class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 7 9 13 13 9 21 17"/><polyline points="21 12 21 17 16 17"/></svg></div>
+          <div class="flabel">Margin at Risk</div>
+          <div class="fsub">Landed cost rises across factory, materials, freight &amp; duty — compressing GM against the <b>target</b>.</div>
+        </div>
+        <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></div>
+        <div class="lnode">
+          <div class="flabel">Deploy Levers</div>
+          <div class="lchips"><span>Re-source origin</span><span>Re-route freight</span><span>Shift pricing</span><span>Redirect merch</span><span>Suppress SKU</span><span>Cancel orders</span><span>Shared pools</span><span>Futures vs. OTB</span><span>Marketplace mix</span></div>
+        </div>
+        <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></div>
+        <div class="fnode defend">
+          <div class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L20 5 V11 C20 16 16 20 12 22 C8 20 4 16 4 11 V5 Z"/><polyline points="9 12 11.5 14.5 15.5 9.5"/></svg></div>
+          <div class="flabel">Margin Defended</div>
+          <div class="fbig">GM<span class="from"> held</span></div>
+          <div class="fsub">Gross margin protected against target — with clear owners and progress tracked SKU-by-SKU.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHY IT'S HARD TODAY (relocated from Signals) -->
+    <div class="whyhard">
+      <div class="wh-k">Why it's hard today</div>
+      <div class="wh-grid">
+        <div class="wh-item">
+          <div class="wh-t">Planning runs on estimated inputs</div>
+          <div class="wh-d">Product line managers build assortments to a GM target, but pricing and demand are only <em>estimated</em> — with limited collaboration with the geo teams that own pricing and marketplace relationships.</div>
+        </div>
+        <div class="wh-item">
+          <div class="wh-t">Futures lock decisions in early</div>
+          <div class="wh-d">Most product is bought on futures — locking demand to a geo, partner, and price point far ahead — and ships at season start with little holdback flex. Cost spans factory, materials, freight &amp; duty, each moving independently.</div>
+        </div>
+        <div class="wh-item">
+          <div class="wh-t">Forecasting alone doesn't defend margin</div>
+          <div class="wh-d">Nike must see GM impact by country of origin, demand, and trade-rate — and, more importantly, <em>operationalize actions</em> across many functions, not forecast in isolation.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIGNALS -->
+<section id="signals">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>The signals that make this relevant now</h2></div>
+    <p class="sec-sub">Everything below is drawn from Nike's own words and the moves its peer set has already
+      made public. Read together, they point to the same capability — one Nike has already named as a priority.</p>
+
+    <div class="signal-grid">
+
+      <div class="signal">
+        <span class="tag">Nike's own priority</span>
+        <h3>"Operate with discipline" is priority #3 for FY27</h3>
+        <p>The third FY27 priority names the exact lane this capability sits in — and it is the operational one.</p>
+        <p class="quote">"Operate with discipline. How we forecast our business, how we make it, deliver it, gotta deliver on time."</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">A named owner</span>
+        <h3>Forecasting has an accountable executive</h3>
+        <p>Leadership has publicly pointed to the Chief Operating Officer (Venky Alagirisamy) as the owner of
+        how Nike forecasts. The capability has a home — it needs the underlying engine.</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">A structural, not acute, cost</span>
+        <h3>Tariffs are now a planning constant</h3>
+        <p>FY27 guidance is built on incremental tariffs rising from 10% to 15%. A one-time recovery benefit
+        eased the near-term pressure, but the structural cost frame is here to stay — so the answer must be a
+        standing capability, not a one-off hedge.</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">The peer set has moved</span>
+        <h3>Peers already have a named sourcing-and-sensing answer</h3>
+        <p>Across the athletic category, competitors have staked out public positions. Nike has the assets and
+        the scale — the opportunity is to bring an answer that is unmistakably Nike's own.</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">Greater China</span>
+        <h3>A geo operating-model shift is underway</h3>
+        <p>Greater China is moving to a new operating model that manages physical and digital differently, with
+        local product creation being built. That shift runs on exactly this sensing-and-decisioning backbone.</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">The next operating model</span>
+        <h3>Sport Offense raises the resolution required</h3>
+        <p>As ~8,000 teammates move into vertical sport teams and FY28 becomes the first "normal year," decisions
+        move to a finer grain — by sport, by geo, by SKU. Sensing has to match that resolution.</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">A once-a-decade moment</span>
+        <h3>Investor Day is the framing window</h3>
+        <p>Nike has deferred its FY27 strategic framework to Investor Day (Nov 16–17, 2026). A credible,
+        named operating answer to the tariff-and-margin question is exactly the kind of proof point that moment rewards.</p>
+      </div>
+
+      <div class="signal">
+        <span class="tag">Geo accountability</span>
+        <h3>Geo leaders now own the P&amp;L outcome</h3>
+        <p>With geo-level performance incentives, each geo GM personally owns revenue and profit — which means the
+        capability needs four geo proof points, not one global slide.</p>
+      </div>
+
+    </div>
+
+    <h4 style="font-size:14px;font-weight:700;margin:34px 0 4px;color:var(--muted);letter-spacing:.02em;">
+      HOW THE PEER SET HAS POSITIONED</h4>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Click any peer to see what they've done in response to tariffs — with links to coverage.</p>
+    <div class="peers">
+      <button class="peer" data-peer="adidas" aria-haspopup="dialog">
+        <div class="name">adidas</div><div class="move">Framing disruption as a chance to take share.</div>
+        <span class="cta">View response <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="peer" data-peer="lululemon" aria-haspopup="dialog">
+        <div class="name">Lululemon</div><div class="move">~$240M named mitigation program.</div>
+        <span class="cta">View response <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="peer" data-peer="puma" aria-haspopup="dialog">
+        <div class="name">Puma</div><div class="move">Cut China-origin US product to ~10%.</div>
+        <span class="cta">View response <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="peer" data-peer="on" aria-haspopup="dialog">
+        <div class="name">On</div><div class="move">Selective US price increases, held margin.</div>
+        <span class="cta">View response <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- CAPABILITIES -->
+<section id="capabilities">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>The capability, in six parts</h2></div>
+    <p class="sec-sub">Tariff Resilience is one integrated capability with six connected components. The first three
+      sense; the second three decide and act. Together they close the loop from signal to margin.</p>
+
+    <div class="cap-grid">
+      <div class="cap">
+        <div class="ico">🌐</div>
+        <h3>1 · Tariff &amp; landed-cost sensing</h3>
+        <p>A living model of true landed cost by SKU and country of origin, that re-prices instantly as tariff
+        rates and trade rules move — so the cost picture is never stale.</p>
+      </div>
+      <div class="cap">
+        <div class="ico">📈</div>
+        <h3>2 · Causal demand sensing</h3>
+        <p>Consumer- and SKU-level demand signals powered by causal AI (IBM Research), so forecasts explain
+        <em>why</em> demand moves — not just extrapolate the past.</p>
+      </div>
+      <div class="cap">
+        <div class="ico">🧱</div>
+        <h3>3 · Enterprise data foundation</h3>
+        <p>The connected data layer that unifies demand, supply, cost, and consumer signals — rebuilt to the
+        resolution the new operating model needs.</p>
+      </div>
+      <div class="cap">
+        <div class="ico">🧭</div>
+        <h3>4 · Intelligent sourcing &amp; allocation</h3>
+        <p>Scenario-based decisions on where to make and where to ship product, balancing landed cost, lead time,
+        and demand — with tariff exposure as a live input.</p>
+      </div>
+      <div class="cap">
+        <div class="ico">🏷️</div>
+        <h3>5 · Dynamic pricing &amp; margin defense</h3>
+        <p>Precision pricing and sell-through decisions that defend margin and hold the line on
+        <em>premium, not promotional</em> — across digital and physical.</p>
+      </div>
+      <div class="cap">
+        <div class="ico">⚙️</div>
+        <h3>6 · Decisioning &amp; governance</h3>
+        <p>The operating cadence and governance — with four geo proof points — that turns signals into decisions
+        people actually make, on time.</p>
+      </div>
+    </div>
+
+    <!-- CONCRETE CAPABILITIES NEEDED (merged from one-pager) -->
+    <h4 style="font-size:14px;font-weight:700;margin:38px 0 4px;color:var(--muted);letter-spacing:.02em;">WHAT THE CAPABILITY MUST LET NIKE DO</h4>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:16px;">The operational moves the model has to make possible — the levers of margin defense, made real.</p>
+    <div class="cap-need-grid">
+      <div class="cap-need">Source products from different markets</div>
+      <div class="cap-need">Deliver products to different markets</div>
+      <div class="cap-need">Shift in-market pricing</div>
+      <div class="cap-need">Change transportation methods</div>
+      <div class="cap-need">Suppress or remove products</div>
+      <div class="cap-need">Sell to different marketplace partners</div>
+      <div class="cap-need">Track SKU-level data end-to-end — sourcing → sell-in → sell-through</div>
+      <div class="cap-need">A singular / integrated system of record across the product lifecycle</div>
+    </div>
+
+    <!-- FUTURE-STATE OPERATING MODEL (merged from one-pager) -->
+    <h4 style="font-size:14px;font-weight:700;margin:36px 0 4px;color:var(--muted);letter-spacing:.02em;">THE FUTURE-STATE OPERATING MODEL IT ENABLES</h4>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:16px;">How Nike runs product once the capability is embedded.</p>
+    <div class="fs-grid">
+      <div class="fs-card"><div class="fs-n">1</div><div class="fs-t">A team that manages product <b>horizontally</b> across functions and silos.</div></div>
+      <div class="fs-card"><div class="fs-n">2</div><div class="fs-t"><b>Real-time, product-level visibility</b> across the entire supply chain.</div></div>
+      <div class="fs-card"><div class="fs-n">3</div><div class="fs-t"><b>Operational tools</b> to adjust product <b>in-flight</b> from factory to retail.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERY -->
+<section id="delivery">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>A draft program delivery approach</h2></div>
+    <p class="sec-sub">Deliberately staged: a bounded, low-risk first move that proves the model, then a
+      phased build to a capability fully embedded by the time FY28 becomes Nike's first "normal year."</p>
+
+    <div class="phase">
+      <div class="meta">
+        <div class="p-name">Phase 1</div>
+        <div class="p-time">10-week sprint</div>
+        <div class="p-when">Fixed-fee · half at risk</div>
+      </div>
+      <div class="body">
+        <h4>Prove the model — a bounded diagnostic sprint</h4>
+        <ul>
+          <li>Tariff &amp; landed-cost sensing diagnostic across representative SKUs and origins</li>
+          <li>Causal-model design for demand and pricing on a focused product/geo slice</li>
+          <li>Program economics &amp; governance blueprint — the multi-year business case</li>
+          <li>Team: 5 named IBM practitioners + 3 Nike delegates; senior IBM Research voice on causal AI</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="meta">
+        <div class="p-name">Phase 2</div>
+        <div class="p-time">~2 quarters</div>
+        <div class="p-when">Foundational build</div>
+      </div>
+      <div class="body">
+        <h4>Build the core — sensing engine + data foundation</h4>
+        <ul>
+          <li>Stand up the landed-cost and causal demand-sensing engines on live data</li>
+          <li>Establish the enterprise data foundation connecting demand, supply, cost, and consumer signals</li>
+          <li>Wire the first decisioning loop into a single geo as the reference implementation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="meta">
+        <div class="p-name">Phase 3</div>
+        <div class="p-time">~3–4 quarters</div>
+        <div class="p-when">Scale across geos</div>
+      </div>
+      <div class="body">
+        <h4>Scale — four geo proof points</h4>
+        <ul>
+          <li>Extend to all four geos, tuned to each geo's operating model (incl. Greater China local-for-local)</li>
+          <li>Activate sourcing/allocation and dynamic-pricing decisioning across the network</li>
+          <li>Align to geo-level accountability so each GM sees the capability in their own P&amp;L</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="meta">
+        <div class="p-name">Phase 4</div>
+        <div class="p-time">FY28-ready</div>
+        <div class="p-when">Embedded capability</div>
+      </div>
+      <div class="body">
+        <h4>Embed — a standing operating capability</h4>
+        <ul>
+          <li>Governance and cadence run natively inside Nike's teams — IBM steps back to steward</li>
+          <li>Sensing-and-decisioning operating at the resolution Sport Offense requires from FY28</li>
+          <li>Continuous improvement loop: signal → decision → margin, measured every cycle</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sprint-callout">
+      <div class="txt">
+        <h4>Why the first move looks the way it does</h4>
+        <p>A 10-week, fixed-fee sprint with half the fee at risk against agreed, deck-ready outputs. Small enough to
+        approve inside the existing run-rate, structured so the commitment runs both ways — and timed so its output
+        is ready for the Investor Day narrative window.</p>
+      </div>
+      <div class="risk">
+        <div class="big">50%</div>
+        <div class="sm">of fee at risk against outcomes</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section id="benefits">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>The business benefits, fully deployed</h2></div>
+    <p class="sec-sub">What Nike gets from the fully embedded capability — the financial value that shows up in the
+      P&amp;L, and the strategic value that compounds beyond any single quarter.</p>
+
+    <div class="ben-split">
+      <div class="ben-col fin">
+        <div class="head">💵 Financial benefits</div>
+        <ul>
+          <li>
+            <div class="b-t">Margin protection under the tariff regime</div>
+            <div class="b-d">Intelligent sourcing, allocation, and pricing keep the 10%→15% incremental tariff from
+            being absorbed straight into gross margin.</div>
+          </li>
+          <li>
+            <div class="b-t">Reduced markdown &amp; promotional leakage</div>
+            <div class="b-d">Precision sell-through decisions defend full-price realization — direct support for
+            "premium, not promotional."</div>
+          </li>
+          <li>
+            <div class="b-t">Working-capital &amp; inventory efficiency</div>
+            <div class="b-d">Sharper demand sensing reduces both excess inventory and stockouts, freeing cash and
+            improving turns.</div>
+          </li>
+          <li>
+            <div class="b-t">Landed-cost optimization</div>
+            <div class="b-d">Sourcing and allocation decisions made against live landed cost — not last season's
+            assumptions — lower the true cost to serve.</div>
+          </li>
+          <li>
+            <div class="b-t">A quantified, peer-scale mitigation program</div>
+            <div class="b-d">A named, dollar-sized program in the order of magnitude peers have already committed
+            to publicly — Nike's own version, sized to Nike's scale.</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="ben-col nonfin">
+        <div class="head">🎯 Non-financial benefits</div>
+        <ul>
+          <li>
+            <div class="b-t">Capability rebuilt to the right resolution</div>
+            <div class="b-d">Sensing-and-decisioning restored and modernized to match the SKU-, country-, and
+            consumer-level grain the operating model now runs at.</div>
+          </li>
+          <li>
+            <div class="b-t">A credible Investor Day proof point</div>
+            <div class="b-d">A named, concrete operating answer to the tariff-and-margin question — the kind of
+            substance a once-a-decade framing moment rewards.</div>
+          </li>
+          <li>
+            <div class="b-t">Geo-leader enablement</div>
+            <div class="b-d">Four geo proof points give each GM the sensing and decisioning tools to own their
+            revenue and profit under the new incentive structure.</div>
+          </li>
+          <li>
+            <div class="b-t">Reduced capability &amp; key-person risk</div>
+            <div class="b-d">A standing, governed capability — not tribal knowledge — so decision quality no longer
+            depends on who's in the room.</div>
+          </li>
+          <li>
+            <div class="b-t">Speed of decisioning</div>
+            <div class="b-d">Forecast, make, deliver — on time. The loop from signal to decision to action gets
+            measurably faster, cycle over cycle.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSE -->
+<section class="close">
+  <div class="wrap">
+    <div class="close-card">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Where this fits</h2></div>
+      <p>The plan is working, and the operating model that comes next is where this capability earns its place.
+      Tariff Resilience isn't a reaction to a bad quarter — it's the sensing-and-decisioning backbone for the way
+      Nike has already said it wants to run: <strong>forecast, make, deliver — on time — as a premium brand.</strong>
+      The first move is small, bounded, and proves itself before it scales.</p>
+      <div class="anchor">→ Start with the 10-week sprint. Prove the model. Then build the capability.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Tariff Resilience — concept overview · IBM Consulting for Nike</span>
+    <span>Confidential · for internal walkthrough use</span>
+  </div>
+</footer>
+
+<!-- ---------- Peer response modal ---------- -->
+<div class="modal-overlay" id="peerModal" role="dialog" aria-modal="true" aria-labelledby="pmName">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="m-name" id="pmName"></div>
+        <span class="m-tag" id="pmTag"></span>
+      </div>
+      <button class="modal-close" id="pmClose" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="m-lead" id="pmLead"></p>
+      <h5>Actions taken in response to tariffs</h5>
+      <ul class="m-actions" id="pmActions"></ul>
+    </div>
+    <div class="modal-links" id="pmLinks">
+      <h5 style="padding:0;margin:14px 0 4px;">Coverage</h5>
+    </div>
+  </div>
+</div>
+
+<script>
+const PEER_DATA = {
+  adidas: {
+    name: "adidas",
+    tag: "Move slowly, protect the long-term",
+    lead: "adidas has treated tariffs as a maneuvering problem, not a pricing reflex \u2014 reallocating its sourcing mix first and holding price as a last, selective lever. CEO Bj\u00f8rn Gulden has been explicit that adidas will not be the price leader.",
+    actions: [
+      "Flagged a direct tariff hit of ~\u20ac120M to 2025 operating profit (heaviest in Q4), with added H2 costs potentially reaching ~\u20ac200M.",
+      "Reallocated sourcing mix rather than raising prices immediately \u2014 Vietnam is its largest US country-of-origin at ~30% of US imports.",
+      "Any price increases to be US-only, applied selectively and more to new products than existing lines; a full pricing review deferred until final US rates were confirmed.",
+      "Framed the disruption publicly as a chance to take share while rivals move, and maintained full-year guidance despite elevated uncertainty."
+    ],
+    links: [
+      {t:"adidas (ADS) earnings Q2 2025 \u2014 tariff costs, US-only price stance", u:"https://www.cnbc.com/2025/07/30/adidas-ads-earnings-q2-2025.html", s:"CNBC"},
+      {t:"adidas expects $140M tariff hit to 2025 operating profit", u:"https://www.globalbankingandfinance.com/adidas-results-tariffs-zero", s:"Reuters"}
+    ]
+  },
+  lululemon: {
+    name: "Lululemon",
+    tag: "~$240M named mitigation program",
+    lead: "Lululemon has put a hard number on the problem: an estimated ~$240M gross-profit drag in fiscal 2025, driven largely by the removal of the US de minimis exemption \u2014 and a structured mitigation program to work it down.",
+    actions: [
+      "Quantified a ~$240M gross-profit reduction for 2025 (net of mitigation) \u2014 roughly a 220 bps gross-margin hit \u2014 tied to higher tariffs and the end of the de minimis exemption.",
+      "Named mitigation levers: vendor / supplier savings, supply-chain shifts, and modest, selective price increases.",
+      "Flagged that Canadian distribution-center fulfilment (a prior workaround) is now fully exposed to tariffs.",
+      "Guided to an intensifying ~$320M net margin impact in fiscal 2026 unless mitigation accelerates \u2014 keeping the program front-and-center for investors."
+    ],
+    links: [
+      {t:"lululemon Q2 FY2025 results \u2014 ~$240M gross-profit impact disclosed", u:"https://corporate.lululemon.com/media/press-releases/2025/09-04-2025-210520895", s:"lululemon IR"},
+      {t:"Margin squeezes as tariffs & markdowns bite \u2014 220 bps hit, $320M FY26 outlook", u:"https://www.tradingview.com/news/zacks:805a03a90094b:0-lululemon-q2-metrics-margin-squeezes-as-tariffs-markdowns-bite", s:"TradingView / Zacks"}
+    ]
+  },
+  puma: {
+    name: "Puma",
+    tag: "Fast sourcing shift out of China",
+    lead: "Puma has leaned on its smaller scale to move sourcing faster than larger rivals \u2014 cutting China-origin product bound for the US and following, not leading, on price.",
+    actions: [
+      "Cut China-sourced product destined for the US market to ~10% of the mix, and falling further, per CFO Markus Neubrand.",
+      "Shifted US-bound sourcing toward Vietnam, Cambodia and Indonesia (Vietnam and Cambodia now among its largest origins).",
+      "Pulled inventory into US warehouses ahead of tariffs (Q1 2025 inventory up ~21% YoY) to buy transition time.",
+      "Signaled it will watch rivals before raising US prices \u2014 \u201cwe don't want to be the leader\u201d on pricing changes \u2014 while cutting ~500 corporate roles in a broader cost drive."
+    ],
+    links: [
+      {t:"Puma adapts supply chain for China tariffs, hints at US price hikes", u:"https://www.reuters.com/business/retail-consumer/puma-reports-decline-first-quarter-profit-margin-2025-05-08", s:"Reuters"},
+      {t:"US tariffs could push Puma to shift China production", u:"https://ww.fashionnetwork.com/news/U-s-tariffs-could-push-puma-to-shift-china-production,971481.html", s:"FashionNetwork"}
+    ]
+  },
+  on: {
+    name: "On",
+    tag: "Priced through, protected margin",
+    lead: "On (On Holding) faces steep Vietnam-origin duties yet passed a selective US price increase through with no hit to profitability \u2014 and raised full-year guidance, betting its premium positioning absorbs the cost.",
+    actions: [
+      "Implemented selective US price increases in early July (~$10 on many styles) with no observed dampening of demand and no impact on Q2 profitability.",
+      "Absorbing sharply higher duties \u2014 ~40% on Vietnam imports and ~39% on Indonesia, up from ~20% \u2014 with Vietnam its dominant footwear source.",
+      "Raised 2025 guidance across net sales, gross margin and adjusted EBITDA, explicitly including the incremental Vietnam tariff.",
+      "Leaning on premium brand strength and operational-excellence efficiencies as the primary tariff shock absorber, rather than mass repricing."
+    ],
+    links: [
+      {t:"On CEO isn't worried about 40% Vietnam shoe tariffs \u2014 here's why", u:"https://wwd.com/footwear-news/shoe-industry-news/on-martin-hoffman-trumps-tariffs-40-percent-vietnam-1238034337", s:"WWD"},
+      {t:"Footwear stocks under pressure \u2014 On passed a ~$10 price increase in July", u:"https://finance.yahoo.com/news/nike-deckers-on-running-among-footwear-stocks-under-pressure-as-trump-outlines-latest-tariff-plans-152248986.html", s:"Yahoo Finance"}
+    ]
+  }
+};
+
+(function(){
+  const overlay = document.getElementById('peerModal');
+  const nameEl = document.getElementById('pmName');
+  const tagEl = document.getElementById('pmTag');
+  const leadEl = document.getElementById('pmLead');
+  const actionsEl = document.getElementById('pmActions');
+  const linksEl = document.getElementById('pmLinks');
+  const closeBtn = document.getElementById('pmClose');
+  let lastFocus = null;
+
+  const linkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>';
+
+  function open(key){
+    const d = PEER_DATA[key];
+    if(!d) return;
+    lastFocus = document.activeElement;
+    nameEl.textContent = d.name;
+    tagEl.textContent = d.tag;
+    leadEl.textContent = d.lead;
+    actionsEl.innerHTML = d.actions.map(a => '<li>'+a+'</li>').join('');
+    linksEl.innerHTML = '<h5 style="padding:0;margin:14px 0 4px;">Coverage</h5>' +
+      d.links.map(l => '<a href="'+l.u+'" target="_blank" rel="noopener noreferrer">'+linkIcon+'<span>'+l.t+'</span><span class="src">'+l.s+'</span></a>').join('');
+    overlay.classList.add('open');
+    document.body.classList.add('modal-open');
+    closeBtn.focus();
+  }
+  function close(){
+    overlay.classList.remove('open');
+    document.body.classList.remove('modal-open');
+    if(lastFocus) lastFocus.focus();
+  }
+
+  document.querySelectorAll('.peer[data-peer]').forEach(btn => {
+    btn.addEventListener('click', () => open(btn.getAttribute('data-peer')));
+  });
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', e => { if(e.target === overlay) close(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && overlay.classList.contains('open')) close(); });
+})();
+</script>
+
+
+
+</body></html>
